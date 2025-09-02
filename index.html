@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autumn Inspiration</title>
+<style>
+/* Mobile-first */
+html,body{height:100%}
+:root{
+  --bg1:#5c2e00; --bg2:#c66a00;
+  --card:#fff7ef; --fg:#1a130e; --accent:#b94700;
+  --shadow:0 6px 24px rgba(0,0,0,.15);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --card:#1b1612; --fg:#f6f1ea; --shadow:0 10px 30px rgba(0,0,0,.5); }
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--fg);
+  background:
+    radial-gradient(1200px 600px at 50% -20%, rgba(255,255,255,.18), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+           max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  display:flex; align-items:center; justify-content:center;
+}
+.container{ width:100%; max-width:720px }
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:22px;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(0,0,0,.06);
+  position:relative;
+}
+h1{ margin:0 0 4px; font-size:clamp(22px,5vw,32px); color:var(--accent) }
+.subtitle{ margin:0 0 18px; opacity:.85; font-size:clamp(14px,3.5vw,16px) }
+.quote{ font-size:clamp(22px,6.2vw,34px); margin:10px 0 8px; font-weight:700 }
+.author{ font-size:clamp(14px,3.8vw,18px); opacity:.8 }
+.controls{ margin-top:18px; display:flex; gap:12px; flex-wrap:wrap }
+button{
+  -webkit-tap-highlight-color: transparent;
+  appearance:none; border:0; border-radius:14px;
+  padding:14px 18px; font-weight:700; font-size:17px;
+  background:linear-gradient(180deg,#ffd9b3,#ffb170); color:#3a220e;
+  box-shadow:0 4px 0 rgba(0,0,0,.15);
+  min-height:48px; cursor:pointer;
+}
+button:active{ transform:translateY(1px) }
+.secondary{ background:#fff2e2 }
+.footer{ margin-top:14px; font-size:13px; opacity:.75 }
+
+/* Viewport-level falling leaves */
+.leaf{
+  position:fixed;
+  top:-10vh;
+  left:0;
+  font-size:clamp(18px,6vw,28px);
+  filter: drop-shadow(0 6px 4px rgba(0,0,0,.2));
+  pointer-events:none;
+  will-change: transform;
+  animation: fall linear forwards, sway ease-in-out infinite;
+}
+@keyframes fall{ to{ transform: translateY(120vh) rotate(360deg) } }
+@keyframes sway{ 0%,100%{ margin-left:-10px } 50%{ margin-left:10px } }
+
+@media (prefers-reduced-motion: reduce){
+  .leaf{ animation:none }
+  button:active{ transform:none }
+}
+</style>
+</head>
+<body>
+  <main class="container">
+    <section class="card" aria-live="polite">
+      <h1>Autumn Inspiration</h1>
+      <p class="subtitle">Tap for a fresh quote and a swirl of 🍁</p>
+      <div class="quote" id="quote">Start where you are. Use what you have. Do what you can.</div>
+      <div class="author" id="author">— Arthur Ashe</div>
+      <div class="controls">
+        <button id="newQuote">Inspire me</button>
+        <button class="secondary" id="copyBtn">Copy</button>
+      </div>
+      <p class="footer">One-file HTML. Works offline. Mobile‑first.</p>
+    </section>
+  </main>
+
+<script>
+// Quotes with commonly accepted attributions
+const QUOTES = [
+  { t:"Do the best you can until you know better. Then when you know better, do better.", a:"Maya Angelou" },
+  { t:"Act as if what you do makes a difference. It does.", a:"William James" },
+  { t:"Start where you are. Use what you have. Do what you can.", a:"Arthur Ashe" },
+  { t:"Fall seven times, stand up eight.", a:"Japanese proverb" },
+  { t:"The journey of a thousand miles begins with a single step.", a:"Chinese proverb" }
+];
+
+const quoteEl = document.getElementById('quote');
+const authorEl = document.getElementById('author');
+const btn = document.getElementById('newQuote');
+const copyBtn = document.getElementById('copyBtn');
+
+let last = 2; // matches initial Arthur Ashe index
+function pickQuote(){
+  let i = Math.floor(Math.random()*QUOTES.length);
+  if(i===last){ i = (i+1) % QUOTES.length; }
+  last = i;
+  const {t,a} = QUOTES[i];
+  quoteEl.textContent = t;
+  authorEl.textContent = "— " + a;
+}
+
+// Viewport-leaf burst
+function burstLeaves(count=12){
+  const emojis = ["🍁","🍂","🍃"];
+  for(let i=0;i<count;i++){
+    const span = document.createElement('span');
+    span.className = 'leaf';
+    span.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    const startXvw = Math.random()*100; // 0..100vw
+    const duration = 5 + Math.random()*3; // seconds
+    const delay = Math.random()*0.6;
+    span.style.left = startXvw + 'vw';
+    span.style.animationDuration = duration + 's, 3s';
+    span.style.animationDelay = delay + 's, 0s';
+    span.style.opacity = (0.7 + Math.random()*0.3).toFixed(2);
+    document.body.appendChild(span);
+    setTimeout(()=>span.remove(), (duration+1)*1000);
+  }
+}
+
+btn.addEventListener('click', ()=>{ pickQuote(); burstLeaves(); });
+
+copyBtn.addEventListener('click', async ()=>{
+  const text = `"${quoteEl.textContent}" ${authorEl.textContent}`;
+  try{
+    await navigator.clipboard.writeText(text);
+    copyBtn.textContent = "Copied!";
+    setTimeout(()=>copyBtn.textContent="Copy", 1200);
+  }catch(e){
+    // Fallback: select text
+    const range = document.createRange();
+    range.selectNodeContents(quoteEl);
+    const sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(range);
+  }
+});
+</script>
+</body>
+</html>
